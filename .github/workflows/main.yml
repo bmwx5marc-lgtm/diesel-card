@@ -1,0 +1,25 @@
+name: Update diesel card
+on:
+  schedule:
+    - cron: "30 14 * * 1-5"   # 16:30 South Africa time, Mon-Fri
+    - cron: "30 16 * * 1-5"   # 18:30 SA time - retry for late postings
+  workflow_dispatch:           # lets you run it manually with a button
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests pdfplumber
+      - run: python diesel_card.py
+      - name: Commit updated card
+        run: |
+          git config user.name "diesel-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/index.html
+          git commit -m "Update diesel card" || echo "no change today"
+          git push
